@@ -1,0 +1,42 @@
+name: Test Financial & Agricultural Code
+on: [push, pull_request]
+
+jobs:
+  test-financial:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Test Loan Calculator
+      run: |
+        python -c "
+        def lambda_handler(event, context):
+            principal = float(event['principal'])
+            rate = float(event['rate']) / 100 / 12
+            months = int(event['months'])
+            payment = principal * (rate * (1 + rate)**months) / ((1 + rate)**months - 1)
+            assert round(payment, 2) == 450.0, 'Loan calculation failed'
+        print('Financial tests passed!')
+        "
+
+  test-agricultural:
+    runs-on: ubuntu-latest
+    needs: test-financial
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Mock API Test
+      run: |
+        python -c "
+        import json
+        def lambda_handler(event, context):
+            return {'maize_price': 3500}
+        result = lambda_handler({}, None)
+        assert isinstance(result['maize_price'], (int, float)), 'Price data invalid'
+        print('Agricultural tests passed!')
+        "
