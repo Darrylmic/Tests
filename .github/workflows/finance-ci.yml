@@ -1,0 +1,14 @@
+name: Finance CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - run: pip install -r financial/requirements.txt
+    - run: python -m pytest financial/tests/
